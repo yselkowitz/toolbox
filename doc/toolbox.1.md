@@ -56,6 +56,7 @@ falls back to a Fedora image. Supported host operating systems are:
 
 * Arch Linux
 * Fedora
+* Fedora ELN
 * Red Hat Enterprise Linux >= 8.5
 * Ubuntu
 
@@ -68,6 +69,7 @@ specifies its version. Supported combinations are:
 Distro |Release
 -------|----------
 arch   |latest or rolling
+eln    |latest
 fedora |\<release\> or f\<release\> eg., 36 or f36
 rhel   |\<major\>.\<minor\> eg., 8.5
 ubuntu |\<YY\>.\<MM\> eg., 22.04
