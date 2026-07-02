@@ -344,6 +344,60 @@ teardown() {
   assert_output "true"
 }
 
+@test "create: Fedora ELN" {
+  pull_distro_image eln latest
+
+  local container="eln-toolbox-latest"
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" create --distro eln
+
+  assert_success
+  assert_line --index 0 "Created container: $container"
+  assert_line --index 1 "Enter with: toolbox enter $container"
+  assert [ ${#lines[@]} -eq 2 ]
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+
+  run podman ps --all
+
+  assert_success
+  assert_output --regexp "Created[[:blank:]]+$container"
+
+  run podman inspect \
+        --format '{{index .Config.Labels "com.github.containers.toolbox"}}' \
+        --type container \
+        "$container"
+
+  assert_success
+  assert_output "true"
+}
+
+@test "create: Fedora ELN ('--release latest')" {
+  pull_distro_image eln latest
+
+  local container="eln-toolbox-latest"
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" create --distro eln --release latest
+
+  assert_success
+  assert_line --index 0 "Created container: $container"
+  assert_line --index 1 "Enter with: toolbox enter $container"
+  assert [ ${#lines[@]} -eq 2 ]
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+
+  run podman ps --all
+
+  assert_success
+  assert_output --regexp "Created[[:blank:]]+$container"
+
+  run podman inspect \
+        --format '{{index .Config.Labels "com.github.containers.toolbox"}}' \
+        --type container \
+        "$container"
+
+  assert_success
+  assert_output "true"
+}
+
 @test "create: RHEL 8.10" {
   pull_distro_image rhel 8.10
 
@@ -732,6 +786,30 @@ teardown() {
   lines=("${stderr_lines[@]}")
   assert_line --index 0 "Error: invalid argument for '--release'"
   assert_line --index 1 "The release must be a positive integer."
+  assert_line --index 2 "Run 'toolbox --help' for usage."
+  assert [ ${#stderr_lines[@]} -eq 3 ]
+}
+
+@test "create: Try Fedora ELN with an invalid release ('--release 11')" {
+  run --keep-empty-lines --separate-stderr "$TOOLBX" --assumeyes create --distro eln --release 11
+
+  assert_failure
+  assert [ ${#lines[@]} -eq 0 ]
+  lines=("${stderr_lines[@]}")
+  assert_line --index 0 "Error: invalid argument for '--release'"
+  assert_line --index 1 "The release must be 'latest'."
+  assert_line --index 2 "Run 'toolbox --help' for usage."
+  assert [ ${#stderr_lines[@]} -eq 3 ]
+}
+
+@test "create: Try Fedora ELN with an invalid release ('--release rolling')" {
+  run --keep-empty-lines --separate-stderr "$TOOLBX" --assumeyes create --distro eln --release rolling
+
+  assert_failure
+  assert [ ${#lines[@]} -eq 0 ]
+  lines=("${stderr_lines[@]}")
+  assert_line --index 0 "Error: invalid argument for '--release'"
+  assert_line --index 1 "The release must be 'latest'."
   assert_line --index 2 "Run 'toolbox --help' for usage."
   assert [ ${#stderr_lines[@]} -eq 3 ]
 }

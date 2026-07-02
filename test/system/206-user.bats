@@ -32,6 +32,7 @@ setup_file() {
 
   if echo "$TOOLBX_TEST_SYSTEM_TAGS" | grep "fedora" >/dev/null 2>/dev/null; then
     create_default_container
+    create_distro_container eln latest eln-toolbox-latest
     create_distro_container fedora 34 fedora-toolbox-34
     create_distro_container rhel 8.10 rhel-toolbox-8.10
   fi
@@ -109,6 +110,23 @@ teardown_file() {
 
   run --keep-empty-lines --separate-stderr podman unshare cat "$container_root_file_system/etc/shadow"
   podman unshare podman unmount fedora-toolbox-34
+
+  assert_success
+  assert_line --regexp '^root::.+$'
+  assert [ ${#lines[@]} -gt 0 ]
+
+  # shellcheck disable=SC2154
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
+@test "user: root in shadow(5) inside Fedora ELN" {
+  container_root_file_system="$(podman unshare podman mount eln-toolbox-latest)"
+
+  "$TOOLBX" run --distro eln true
+
+  run --keep-empty-lines --separate-stderr podman unshare cat "$container_root_file_system/etc/shadow"
+  podman unshare podman unmount eln-toolbox-latest
 
   assert_success
   assert_line --regexp '^root::.+$'
@@ -231,6 +249,24 @@ teardown_file() {
   user_id_real="$(id --real --user)"
 
   run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro fedora --release 34 cat /etc/passwd
+
+  assert_success
+  assert_line --regexp "^$USER::$user_id_real:$user_id_real:$user_gecos:$HOME:$SHELL$"
+  assert [ ${#lines[@]} -gt 1 ]
+
+  # shellcheck disable=SC2154
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
+@test "user: $USER in passwd(5) inside Fedora ELN" {
+  local user_gecos
+  user_gecos="$(getent passwd "$USER" | cut --delimiter : --fields 5)"
+
+  local user_id_real
+  user_id_real="$(id --real --user)"
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln cat /etc/passwd
 
   assert_success
   assert_line --regexp "^$USER::$user_id_real:$user_id_real:$user_gecos:$HOME:$SHELL$"
@@ -367,6 +403,23 @@ teardown_file() {
 }
 
 # bats test_tags=arch-fedora
+@test "user: $USER in shadow(5) inside Fedora ELN" {
+  container_root_file_system="$(podman unshare podman mount eln-toolbox-latest)"
+
+  "$TOOLBX" run --distro eln true
+
+  run --keep-empty-lines --separate-stderr podman unshare cat "$container_root_file_system/etc/shadow"
+  podman unshare podman unmount eln-toolbox-latest
+
+  assert_success
+  refute_line --regexp "^$USER:.*$"
+  assert [ ${#lines[@]} -gt 0 ]
+
+  # shellcheck disable=SC2154
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
 @test "user: $USER in shadow(5) inside RHEL 8.10" {
   container_root_file_system="$(podman unshare podman mount rhel-toolbox-8.10)"
 
@@ -463,6 +516,19 @@ teardown_file() {
 # bats test_tags=arch-fedora
 @test "user: $USER in group(5) inside Fedora 34" {
   run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro fedora --release 34 cat /etc/group
+
+  assert_success
+  assert_line --regexp "^$USER:x:[[:digit:]]+:$USER$"
+  assert_line --regexp "^wheel:x:[[:digit:]]+:$USER$"
+  assert [ ${#lines[@]} -gt 1 ]
+
+  # shellcheck disable=SC2154
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
+@test "user: $USER in group(5) inside Fedora ELN" {
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln cat /etc/group
 
   assert_success
   assert_line --regexp "^$USER:x:[[:digit:]]+:$USER$"
@@ -582,6 +648,28 @@ teardown_file() {
   assert [ ${#stderr_lines[@]} -eq 0 ]
 
   run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro fedora --release 34 id "$USER"
+
+  assert_success
+  assert_line --index 0 "$output_id"
+  assert [ ${#lines[@]} -eq 1 ]
+
+  # shellcheck disable=SC2154
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
+@test "user: id(1) for $USER inside Fedora ELN" {
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln id
+
+  assert_success
+  assert [ ${#lines[@]} -eq 1 ]
+
+  local output_id="${lines[0]}"
+
+  # shellcheck disable=SC2154
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln id "$USER"
 
   assert_success
   assert_line --index 0 "$output_id"

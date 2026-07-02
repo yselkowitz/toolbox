@@ -45,6 +45,7 @@ readonly TOOLBX_TEST_SYSTEM_TAGS="${TOOLBX_TEST_SYSTEM_TAGS:-$TOOLBX_TEST_SYSTEM
 declare -Ag IMAGES=([arch]="quay.io/toolbx/arch-toolbox" \
                    [busybox]="quay.io/toolbox_tests/busybox" \
                    [docker-reg]="quay.io/toolbox_tests/registry" \
+                   [eln]="quay.io/fedora/eln-toolbox" \
                    [fedora]="registry.fedoraproject.org/fedora-toolbox" \
                    [rhel]="registry.access.redhat.com/ubi8/toolbox" \
                    [ubuntu]="quay.io/toolbx/ubuntu-toolbox")
@@ -608,7 +609,9 @@ function get_system_version() (
   . "$os_release"
 
   local system_version="$VERSION_ID"
-  [ "$ID" = "arch" ] && system_version="latest"
+  if [ "$ID" = "arch" ] || [ "$ID" = "eln" ]; then
+    system_version="latest"
+  fi
 
   echo "$system_version"
 )

@@ -43,6 +43,7 @@ setup_file() {
 
   if echo "$TOOLBX_TEST_SYSTEM_TAGS" | grep "fedora" >/dev/null 2>/dev/null; then
     create_default_container
+    create_distro_container eln latest eln-toolbox-latest
     create_distro_container fedora 34 fedora-toolbox-34
     create_distro_container rhel 8.10 rhel-toolbox-8.10
   fi
@@ -113,6 +114,24 @@ teardown_file() {
 # bats test_tags=arch-fedora
 @test "network: /etc/resolv.conf inside Fedora 34" {
   run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro fedora --release 34 readlink /etc/resolv.conf
+
+  assert_success
+
+  if [ "${lines[0]}" = "/run/host/run/systemd/resolve/stub-resolv.conf" ]; then
+    skip "host has absolute symlink"
+  else
+    assert_line --index 0 "/run/host/etc/resolv.conf"
+  fi
+
+  assert [ ${#lines[@]} -eq 1 ]
+
+  # shellcheck disable=SC2154
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
+@test "network: /etc/resolv.conf inside Fedora ELN" {
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln readlink /etc/resolv.conf
 
   assert_success
 
@@ -312,6 +331,47 @@ teardown_file() {
     run --keep-empty-lines --separate-stderr "$TOOLBX" run \
       --distro fedora \
       --release 34 \
+      python3 -c "$RESOLVER_PYTHON3" AAAA k.root-servers.net
+
+    assert_success
+    assert_line --index 0 "$ipv6_addr"
+    assert [ ${#lines[@]} -eq 1 ]
+    assert [ ${#stderr_lines[@]} -eq 0 ]
+  fi
+}
+
+# bats test_tags=arch-fedora
+@test "network: DNS inside Fedora ELN" {
+  local ipv4_skip=false
+  local ipv4_addr
+  if ! ipv4_addr="$(python3 -c "$RESOLVER_PYTHON3" A k.root-servers.net)"; then
+    ipv4_skip=true
+  fi
+
+  local ipv6_skip=false
+  local ipv6_addr
+  if ! ipv6_addr="$(python3 -c "$RESOLVER_PYTHON3" AAAA k.root-servers.net)"; then
+    ipv6_skip=true
+  fi
+
+  if $ipv4_skip && $ipv6_skip; then
+    skip "DNS not working on host"
+  fi
+
+  if ! $ipv4_skip; then
+    run --keep-empty-lines --separate-stderr "$TOOLBX" run \
+      --distro eln \
+      python3 -c "$RESOLVER_PYTHON3" A k.root-servers.net
+
+    assert_success
+    assert_line --index 0 "$ipv4_addr"
+    assert [ ${#lines[@]} -eq 1 ]
+    assert [ ${#stderr_lines[@]} -eq 0 ]
+  fi
+
+  if ! $ipv6_skip; then
+    run --keep-empty-lines --separate-stderr "$TOOLBX" run \
+      --distro eln \
       python3 -c "$RESOLVER_PYTHON3" AAAA k.root-servers.net
 
     assert_success
@@ -526,6 +586,21 @@ teardown_file() {
 # bats test_tags=arch-fedora
 @test "network: ping(8) inside Fedora 34" {
   run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro fedora --release 34 ping -c 2 f.root-servers.net
+
+  if [ "$status" -eq 1 ]; then
+    skip "lost packets"
+  fi
+
+  assert_success
+  assert [ ${#lines[@]} -gt 0 ]
+
+  # shellcheck disable=SC2154
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
+@test "network: ping(8) inside Fedora ELN" {
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln ping -c 2 f.root-servers.net
 
   if [ "$status" -eq 1 ]; then
     skip "lost packets"

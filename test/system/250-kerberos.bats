@@ -134,6 +134,33 @@ teardown() {
 }
 
 # bats test_tags=arch-fedora
+@test "kerberos: Smoke test with Fedora ELN" {
+  create_distro_container eln latest eln-toolbox-latest
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln cat /etc/krb5.conf.d/kcm_default_ccache
+
+  assert_success
+  assert_line --index 0 "# Written by Toolbx"
+  assert_line --index 1 "# https://containertoolbx.org/"
+  assert_line --index 2 "#"
+  assert_line --index 3 "# # To disable the KCM credential cache, comment out the following lines."
+  assert_line --index 4 ""
+  assert_line --index 5 "[libdefaults]"
+  assert_line --index 6 "    default_ccache_name = KCM:"
+  assert [ ${#lines[@]} -eq 7 ]
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln stat \
+                                                                        --format "%A %U:%G" \
+                                                                        /etc/krb5.conf.d/kcm_default_ccache
+
+  assert_success
+  assert_line --index 0 "-rw-r--r-- root:root"
+  assert [ ${#lines[@]} -eq 1 ]
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
 @test "kerberos: Smoke test with RHEL 8.10" {
   create_distro_container rhel 8.10 rhel-toolbox-8.10
 

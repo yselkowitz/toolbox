@@ -49,6 +49,7 @@ setup_suite() {
     # Cache the default image for the system
     _pull_and_cache_distro_image "$system_id" "$system_version"
     # Cache all images that will be needed during the tests
+    _pull_and_cache_distro_image eln latest
     _pull_and_cache_distro_image fedora 34
     _pull_and_cache_distro_image rhel 8.10
   fi

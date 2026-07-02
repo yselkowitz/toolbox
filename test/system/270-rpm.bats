@@ -110,6 +110,37 @@ teardown() {
 }
 
 # bats test_tags=arch-fedora
+@test "rpm: %_netsharedpath inside Fedora ELN" {
+  create_distro_container eln latest eln-toolbox-latest
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln rpm --eval %_netsharedpath
+
+  assert_success
+  assert_line --index 0 "/dev:/media:/mnt:/proc:/sys:/tmp:/var/lib/flatpak:/var/lib/libvirt"
+  assert [ ${#lines[@]} -eq 1 ]
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln cat /usr/lib/rpm/macros.d/macros.toolbox
+
+  assert_success
+  assert_line --index 0 "# Written by Toolbx"
+  assert_line --index 1 "# https://containertoolbx.org/"
+  assert_line --index 2 ""
+  assert_line --index 3 "%_netsharedpath /dev:/media:/mnt:/proc:/sys:/tmp:/var/lib/flatpak:/var/lib/libvirt"
+  assert [ ${#lines[@]} -eq 4 ]
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln stat \
+                                                                        --format "%A %U:%G" \
+                                                                        /usr/lib/rpm/macros.d/macros.toolbox
+
+  assert_success
+  assert_line --index 0 "-rw-r--r-- root:root"
+  assert [ ${#lines[@]} -eq 1 ]
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
 @test "rpm: %_netsharedpath inside RHEL 8.10" {
   create_distro_container rhel 8.10 rhel-toolbox-8.10
 

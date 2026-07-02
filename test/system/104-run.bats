@@ -125,6 +125,26 @@ teardown() {
   assert [ ${#stderr_lines[@]} -eq 0 ]
 }
 
+@test "run: Smoke test with Fedora ELN" {
+  create_distro_container eln latest eln-toolbox-latest
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln true
+
+  assert_success
+  assert [ ${#lines[@]} -eq 0 ]
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+@test "run: Smoke test with Fedora ELN ('--release latest')" {
+  create_distro_container eln latest eln-toolbox-latest
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln --release latest true
+
+  assert_success
+  assert [ ${#lines[@]} -eq 0 ]
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
 @test "run: Smoke test with RHEL 8.10" {
   create_distro_container rhel 8.10 rhel-toolbox-8.10
 
@@ -517,6 +537,30 @@ teardown() {
   lines=("${stderr_lines[@]}")
   assert_line --index 0 "Error: invalid argument for '--release'"
   assert_line --index 1 "The release must be a positive integer."
+  assert_line --index 2 "Run 'toolbox --help' for usage."
+  assert [ ${#stderr_lines[@]} -eq 3 ]
+}
+
+@test "run: Try Fedora ELN with an invalid release ('--release 11')" {
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln --release 11 ls
+
+  assert_failure
+  assert [ ${#lines[@]} -eq 0 ]
+  lines=("${stderr_lines[@]}")
+  assert_line --index 0 "Error: invalid argument for '--release'"
+  assert_line --index 1 "The release must be 'latest'."
+  assert_line --index 2 "Run 'toolbox --help' for usage."
+  assert [ ${#stderr_lines[@]} -eq 3 ]
+}
+
+@test "run: Try Fedora ELN with an invalid release ('--release rolling')" {
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln --release rolling ls
+
+  assert_failure
+  assert [ ${#lines[@]} -eq 0 ]
+  lines=("${stderr_lines[@]}")
+  assert_line --index 0 "Error: invalid argument for '--release'"
+  assert_line --index 1 "The release must be 'latest'."
   assert_line --index 2 "Run 'toolbox --help' for usage."
   assert [ ${#stderr_lines[@]} -eq 3 ]
 }

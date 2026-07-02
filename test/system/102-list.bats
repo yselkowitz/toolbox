@@ -180,6 +180,36 @@ teardown() {
   assert [ ${#stderr_lines[@]} -eq 0 ]
 }
 
+@test "list: Fedora ELN image" {
+  pull_distro_image eln latest
+
+  local num_of_images
+  num_of_images="$(list_images)"
+  assert_equal "$num_of_images" 1
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" list
+
+  assert_success
+  assert_line --index 1 --partial "quay.io/fedora/eln-toolbox:latest"
+  assert [ ${#lines[@]} -eq 2 ]
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+@test "list: Fedora ELN image (using --images)" {
+  pull_distro_image eln latest
+
+  local num_of_images
+  num_of_images="$(list_images)"
+  assert_equal "$num_of_images" 1
+
+  run --keep-empty-lines --separate-stderr "$TOOLBX" list --images
+
+  assert_success
+  assert_line --index 1 --partial "quay.io/fedora/eln-toolbox:latest"
+  assert [ ${#lines[@]} -eq 2 ]
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
 @test "list: RHEL 8.10 image" {
   pull_distro_image rhel 8.10
 

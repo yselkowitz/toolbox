@@ -32,6 +32,7 @@ setup_file() {
 
   if echo "$TOOLBX_TEST_SYSTEM_TAGS" | grep "fedora" >/dev/null 2>/dev/null; then
     create_default_container
+    create_distro_container eln latest eln-toolbox-latest
     create_distro_container fedora 34 fedora-toolbox-34
     create_distro_container rhel 8.10 rhel-toolbox-8.10
   fi
@@ -107,6 +108,29 @@ teardown_file() {
 
   # shellcheck disable=SC2016
   run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro fedora --release 34 bash -c 'echo "$HISTFILESIZE"'
+
+  assert_success
+  assert_line --index 0 "$HISTFILESIZE"
+  assert [ ${#lines[@]} -eq 1 ]
+
+  # shellcheck disable=SC2154
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
+@test "environment variables: HISTFILESIZE inside Fedora ELN" {
+  # shellcheck disable=SC2031
+  if [ "$HISTFILESIZE" = "" ]; then
+    # shellcheck disable=SC2030
+    HISTFILESIZE=1001
+  else
+    ((HISTFILESIZE++))
+  fi
+
+  export HISTFILESIZE
+
+  # shellcheck disable=SC2016
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln bash -c 'echo "$HISTFILESIZE"'
 
   assert_success
   assert_line --index 0 "$HISTFILESIZE"
@@ -283,6 +307,29 @@ teardown_file() {
 }
 
 # bats test_tags=arch-fedora
+@test "environment variables: HISTSIZE inside Fedora ELN" {
+  # shellcheck disable=SC2031
+  if [ "$HISTSIZE" = "" ]; then
+    # shellcheck disable=SC2030
+    HISTSIZE=1001
+  else
+    ((HISTSIZE++))
+  fi
+
+  export HISTSIZE
+
+  # shellcheck disable=SC2016
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln bash -c 'echo "$HISTSIZE"'
+
+  assert_success
+  assert_line --index 0 "$HISTSIZE"
+  assert [ ${#lines[@]} -eq 1 ]
+
+  # shellcheck disable=SC2154
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
 @test "environment variables: HISTSIZE inside RHEL 8.10" {
   skip "https://pagure.io/setup/pull-request/48"
 
@@ -409,6 +456,17 @@ teardown_file() {
 }
 
 # bats test_tags=arch-fedora
+@test "environment variables: HOSTNAME inside Fedora ELN" {
+  # shellcheck disable=SC2016
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln bash -c 'echo "$HOSTNAME"'
+
+  assert_success
+  assert_line --index 0 "toolbx"
+  assert [ ${#lines[@]} -eq 1 ]
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
 @test "environment variables: HOSTNAME inside RHEL 8.10" {
   # shellcheck disable=SC2016
   run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro rhel --release 8.10 bash -c 'echo "$HOSTNAME"'
@@ -499,6 +557,25 @@ teardown_file() {
 
   # shellcheck disable=SC2016
   run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro fedora --release 34 bash -c 'echo "$KONSOLE_VERSION"'
+
+  assert_success
+  assert_line --index 0 "$KONSOLE_VERSION"
+  assert [ ${#lines[@]} -eq 1 ]
+
+  # shellcheck disable=SC2154
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
+@test "environment variables: KONSOLE_VERSION inside Fedora ELN" {
+  # shellcheck disable=SC2031
+  if [ "$KONSOLE_VERSION" = "" ]; then
+    # shellcheck disable=SC2030
+    export KONSOLE_VERSION=230804
+  fi
+
+  # shellcheck disable=SC2016
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln bash -c 'echo "$KONSOLE_VERSION"'
 
   assert_success
   assert_line --index 0 "$KONSOLE_VERSION"
@@ -630,6 +707,25 @@ teardown_file() {
 
   # shellcheck disable=SC2016
   run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro fedora --release 34 bash -c 'echo "$XTERM_VERSION"'
+
+  assert_success
+  assert_line --index 0 "$XTERM_VERSION"
+  assert [ ${#lines[@]} -eq 1 ]
+
+  # shellcheck disable=SC2154
+  assert [ ${#stderr_lines[@]} -eq 0 ]
+}
+
+# bats test_tags=arch-fedora
+@test "environment variables: XTERM_VERSION inside Fedora ELN" {
+  # shellcheck disable=SC2031
+  if [ "$XTERM_VERSION" = "" ]; then
+    # shellcheck disable=SC2030
+    export XTERM_VERSION="XTerm(385)"
+  fi
+
+  # shellcheck disable=SC2016
+  run --keep-empty-lines --separate-stderr "$TOOLBX" run --distro eln bash -c 'echo "$XTERM_VERSION"'
 
   assert_success
   assert_line --index 0 "$XTERM_VERSION"
