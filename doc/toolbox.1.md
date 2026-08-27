@@ -55,6 +55,7 @@ distribution for creating containers. If the host is not supported, then it
 falls back to a Fedora image. Supported host operating systems are:
 
 * Arch Linux
+* CentOS Stream
 * Fedora
 * Fedora ELN
 * Red Hat Enterprise Linux >= 8.5
@@ -69,6 +70,7 @@ specifies its version. Supported combinations are:
 Distro |Release
 -------|----------
 arch   |latest or rolling
+centos |\<major\> or stream\<major\> e.g. 10 or stream10
 eln    |latest
 fedora |\<release\> or f\<release\> eg., 36 or f36
 rhel   |\<major\>.\<minor\> eg., 8.5

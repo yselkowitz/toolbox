@@ -139,6 +139,15 @@ var (
 			getP11KitClientPathsArch,
 			parseReleaseArch,
 		},
+		"centos": {
+			"centos-toolbox",
+			"centos-toolbox",
+			true,
+			getDefaultReleaseCentOS,
+			getFullyQualifiedImageCentOS,
+			getP11KitClientPathsCentOS,
+			parseReleaseCentOS,
+		},
 		"eln": {
 			"eln-toolbox",
 			"eln-toolbox",

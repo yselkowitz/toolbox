@@ -104,6 +104,66 @@ func TestParseRelease(t *testing.T) {
 			errMsg:       "The release must be 'latest'.",
 		},
 		{
+			inputDistro:  "centos",
+			inputRelease: "stream10",
+			output:       "10",
+		},
+		{
+			inputDistro:  "centos",
+			inputRelease: "10",
+			output:       "10",
+		},
+		{
+			inputDistro:  "centos",
+			inputRelease: "-3",
+			errMsg:       "The release must be a positive integer.",
+		},
+		{
+			inputDistro:  "centos",
+			inputRelease: "-3.0",
+			errMsg:       "The release must be a positive integer.",
+		},
+		{
+			inputDistro:  "centos",
+			inputRelease: "-3.1",
+			errMsg:       "The release must be a positive integer.",
+		},
+		{
+			inputDistro:  "centos",
+			inputRelease: "0",
+			errMsg:       "The release must be a positive integer.",
+		},
+		{
+			inputDistro:  "centos",
+			inputRelease: "0.0",
+			errMsg:       "The release must be a positive integer.",
+		},
+		{
+			inputDistro:  "centos",
+			inputRelease: "0.1",
+			errMsg:       "The release must be a positive integer.",
+		},
+		{
+			inputDistro:  "centos",
+			inputRelease: "3.0",
+			errMsg:       "The release must be a positive integer.",
+		},
+		{
+			inputDistro:  "centos",
+			inputRelease: "3.1",
+			errMsg:       "The release must be a positive integer.",
+		},
+		{
+			inputDistro:  "centos",
+			inputRelease: "stream",
+			errMsg:       "The release must be a positive integer.",
+		},
+		{
+			inputDistro:  "centos",
+			inputRelease: "10stream",
+			errMsg:       "The release must be a positive integer.",
+		},
+		{
 			inputDistro:  "eln",
 			inputRelease: "",
 			output:       "latest",
